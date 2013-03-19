@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>Functional programming in Java</title>
+
+    <meta name="author" content="Maxim Shmidov">
+
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+
+    <link rel="stylesheet" href="reveal/css/reveal.css">
+    <link rel="stylesheet" href="reveal/css/theme/exadel/exadel.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="reveal/lib/css/googlecode.css">
+
+    <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+    <script>
+        document.write('<link rel="stylesheet" href="reveal/css/print/' + ( window.location.search.match(/print-pdf/gi) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">');
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="reveal/lib/js/html5shiv.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+<header id="header"></header>
+
+<div class="reveal">
+    <div class="slides">
+
+        <section>
+            <h1>Обогащаем Java:<br>функциональное программирование</h1>
+
+            <h3>В ФП принято:</h3>
+            <ul>
+                <li>Рассматривать алгоритм как последовательность вычисляемых функций</li>
+                <li>Избегать состояния и изменяемых данных</li>
+            </ul>
+        </section>
+
+        <section>
+            <section>
+                <h1>Функции первого класса</h1>
+
+                <h3>Если язык позволяет функции быть &laquoгражданином первого класса;&raquo;, то функцию
+                    можно:</h3>
+                <ul>
+                    <li>Передавать в качестве аргумента другой функции</li>
+                    <li>Возвращать в качестве результата из другой функции</li>
+                    <li>Присваивать переменным и хранить в структурах данных</li>
+                </ul>
+
+                <h3>Сходные парадигмы в Java:</h3>
+                <ul>
+                    <li>Паттерны Strategy и Command</li>
+                    <li>Интерфейсы Runnable и Callable</li>
+                </ul>
+            </section>
+
+            <section>
+                <h1>Функции первого класса в Java</h1>
+
+                <h3>Простейшая реализация - интерфейс Function</h3>
+
+                    <pre><code class="java">public interface Function&lt;I, O&gt; {
+
+    O apply(I input);
+
+}</code></pre>
+
+                <h3>Анонимные классы загрязняют код?</h3>
+
+                <p>библиотеки функций + статические импорты</p>
+
+                    <pre><code class="java">public final class Functions {
+
+		public static final Function&lt;String, String&gt; TO_LOWERCASE =
+				new Function&lt;String, String&gt;() {
+
+					@Override
+					public String apply(String input) {
+						return input.toLowerCase();
+					}
+				};
+
+	}</code></pre>
+
+                <p>Или делаем так&hellip;</p>
+            </section>
+
+            <section>
+                <h1>Самостоятельная &laquo;функция первого класса&raquo;</h1>
+
+                    <pre><code class="java">public static final class ToLowercaseFunction implements Function&lt;String, String&gt; {
+
+	public static Function&lt;String, String&gt; toLowerCase() {
+		return new ToLowercaseFunction();
+	}
+
+	private ToLowercaseFunction() {
+		// no external instantiation
+	}
+
+	@Override
+	public String apply(String input) {
+		return input.toLowerCase();
+	}
+}</code></pre>
+
+                <p>И, соответственно,</p>
+                <pre><code class="java">import static ToLowercaseFunction.toLowerCase;</code></pre>
+
+            </section>
+        </section>
+
+        <section>
+            <section>
+                <h1>Чистые функциии</h1>
+
+                <h3>Функция называется <strong>чистой</strong>, если удовлетворяет двум условиям:</h3>
+                <ul>
+                    <li>Функция, вызванная с одинаковыми аргументами, всегда возвращает одинаковый результат.
+                        Результат
+                        не зависит от какого-либо изменяемого <strong>состояния</strong>, будь то локальные данные
+                        или
+                        данные с устройств ввода/вывода.
+                    </li>
+                    <li>Вычисление функции не вызывает <strong>побочного эффекта</strong> &mdash; изменения каких&ndash;либо
+                        данных или отправки их на устройство ввода/вывода.
+                    </li>
+                </ul>
+
+                <p class="thesis">Результат чистой функции не обязан зависеть от аргументов, но он обязан зависеть
+                    <strong>только</strong> от аргументов.</p>
+
+            </section>
+
+            <section>
+                <h1>Чистые функциии в Java</h1>
+
+                <p class="thesis">В Java нельзя заставить функцию быть чистой, но можно задокументировать или
+                    аннотировать её по соглашению.</p>
+
+                <p class="thesis">Чистые функции значительно упрощают отладку.</p>
+
+                    <pre><code class="java">@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.SOURCE)
+@Documented
+public static @interface Pure { }</code></pre>
+            </section>
+
+        </section>
+
+        <section>
+                <h1>Рекурсия</h1>
+
+                <ul>
+                    <li>В функциональных языках рекурсия - очень легковесная операция, поэтому она очень часто
+                        используется.
+                    </li>
+                    <li>В Java (к сожалению) пока нет оптимизации хвостовой рекурсии, поэтому рекурсия проигрывает
+                        итерации.
+                    </li>
+                    <li>Fork/Join из Java 1.7 опирается на рекурсивные алгоритмы, но это отдельная тема.</li>
+                </ul>
+        </section>
+
+        <section>
+            <section>
+                <h1>Closures</h1>
+            </section>
+        </section>
+
+        <section>
+            <section>
+                <h1>Tuples</h1>
+            </section>
+        </section>
+
+        <section>
+            <section>
+                <h1>Идиомы функционального программирования</h1>
+            </section>
+        </section>
+
+        <section>
+            <section>
+                <h1>Null-avoidance</h1>
+            </section>
+        </section>
+
+        <section>
+            <section>
+                <h1>Either</h1>
+            </section>
+        </section>
+
+    </div>
+</div>
+
+<script src="reveal/lib/js/head.min.js"></script>
+<script src="reveal/js/reveal.min.js"></script>
+
+<script>
+    Reveal.initialize({
+
+        controls: true,// Display controls in the bottom right corner
+        progress: true,	// Display a presentation progress bar
+        history: false,// Push each slide change to the browser history
+        keyboard: true,// Enable keyboard shortcuts for navigation
+        overview: true,// Enable the slide overview mode
+        center: false,	// Vertical centering of slides
+        loop: false,// Loop the presentation
+        rtl: false,	// Change the presentation direction to be RTL
+        autoSlide: 0,
+        mouseWheel: false,// Enable slide navigation via mouse wheel
+        rollingLinks: false,// Apply a 3D roll to links on hover
+        transition: 'linear', 	// Transition style default/cube/page/concave/zoom/linear/none
+
+        dependencies: [
+            // Cross-browser shim that fully implements classList - https://github.com/eligrey/classList.js/
+            { src: 'reveal/lib/js/classList.js', condition: function () {
+                return !document.body.classList;
+            } },
+            // Interpret Markdown in <section> elements
+            { src: 'reveal/plugin/markdown/showdown.js', condition: function () {
+                return !!document.querySelector('[data-markdown]');
+            } },
+            { src: 'reveal/plugin/markdown/markdown.js', condition: function () {
+                return !!document.querySelector('[data-markdown]');
+            } },
+            // Syntax highlight for <code> elements
+            { src: 'reveal/plugin/highlight/highlight.pack.js', async: true, callback: function () {
+                hljs.tabReplace = '    ';
+                hljs.initHighlightingOnLoad();
+            } },
+            // Zoom in and out with Alt+click
+            { src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function () {
+                return !!document.body.classList;
+            } },
+            // Speaker notes
+            { src: 'reveal/plugin/notes/notes.js', async: true, condition: function () {
+                return !!document.body.classList;
+            } },
+            { src: 'reveal/plugin/clock/clock.js', async: true, callback: function () {
+                clock.init("header");
+            } }
+        ]
+    });
+</script>
+</body>
+</html>
