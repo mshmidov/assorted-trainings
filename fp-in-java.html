@@ -180,7 +180,37 @@ public static @interface Pure { }</code></pre>
 
         <section>
             <section>
-                <h1>Tuples</h1>
+                <h1>Кортежи</h1>
+                
+                <p>В функциональных языках часто используются <strong>кортежи</strong> &mdash; контейнеры, которые содержат 
+                   последовательность значений определённой длины. Кортежи, как и коллекции, не несут никакой собственной 
+                   семантики. Их отличие от коллекций в том, что они могут содержать значения разных типов одновременно.</p>
+            </section>
+            <section>
+                <h1>Кортежи в Java</h1>
+                
+                <pre><code class="java">public final class Pair&lt;A, B&gt; {
+    
+    private final A first;
+    private final B second;
+    
+    public static &lt;A, B&gt; Pair&lt;A, B&gt; pair(A first, B second) {
+        return new Pair&lt;A, B&gt;(first, second);
+    }
+    
+    private Pair(A first, B second) {
+        this.first = first;
+        this.second = second;
+    }
+ 
+    public A getFirst() { return first; }
+    
+    public B getSecond() { return recond;}
+    }
+}</code></pre>
+
+                <p>и, соответственно,</p>
+                <pre><code class="java">return pair(a, b);</code></pre>
             </section>
         </section>
 
